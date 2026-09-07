@@ -1,28 +1,26 @@
-#ifndef CRYPTO_MODE_CIPHER_MODE_HPP
-#define CRYPTO_MODE_CIPHER_MODE_HPP
+
+#pragma once
 
 #include "internal/core/symmetric_cipher.hpp"
 #include <cstddef>
 
 namespace crypto::mode {
 
-  class SymmetricCipherMode {
+class SymmetricCipherMode {
   public:
     virtual ~SymmetricCipherMode() = default;
 
     virtual void encrypt(
         core::SymmetricCipher &cipher,
-        const Bytes &input,
-        Bytes &output,
-        size_t threads) = 0;
+        const Bytes           &input,
+        Bytes                 &output,
+        size_t                 threads) = 0;
 
     virtual void decrypt(
         core::SymmetricCipher &cipher,
-        const Bytes &input,
-        Bytes &output,
-        size_t threads) = 0;
-  };
+        const Bytes           &input,
+        Bytes                 &output,
+        size_t                 threads) = 0;
+};
 
 } // namespace crypto::mode
-
-#endif

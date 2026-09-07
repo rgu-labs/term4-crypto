@@ -188,7 +188,8 @@ TEST(EulerPhiDefinition, Composite) {
 TEST(EulerPhiFactorization, MatchesDefinitionUpTo50) {
     for (long n = 1; n <= 50; ++n) {
         ASSERT_EQ(math::euler_phi_factorization(mpz_class(n)),
-                  math::euler_phi_definition(mpz_class(n))) << "n = " << n;
+                  math::euler_phi_definition(mpz_class(n)))
+            << "n = " << n;
     }
 }
 
@@ -203,7 +204,8 @@ TEST(EulerPhiFactorization, PowerOfTwo) {
 TEST(EulerPhiDft, MatchesDefinitionUpTo20) {
     for (long n = 1; n <= 20; ++n) {
         ASSERT_EQ(math::euler_phi_dft(mpz_class(n)),
-                  math::euler_phi_definition(mpz_class(n))) << "n = " << n;
+                  math::euler_phi_definition(mpz_class(n)))
+            << "n = " << n;
     }
 }
 

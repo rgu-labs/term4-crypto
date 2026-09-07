@@ -74,11 +74,11 @@ valgrind: debug
 
 analyze: build
 	$(Q)echo "Analyzing code with clang-tidy..."
-	$(Q)find . -name '*.cpp' -o -name '*.h' -not -path "./$(BUILD_DIR)/*" -not -path "./$(TARGET_DIR)/*" | xargs clang-tidy -p.
+	$(Q)find src tests \( -name '*.cpp' -o -name '*.hpp' \) -not -path "./$(BUILD_DIR)/*" -not -path "./$(TARGET_DIR)/*" | xargs clang-tidy -p . $(ARGS)
 
 analyze_fix: build
 	$(Q)echo "Analyzing code with clang-tidy..."
-	$(Q)find . -name '*.cpp' -o -name '*.h' -not -path "./$(BUILD_DIR)/*" -not -path "./$(TARGET_DIR)/*" | xargs clang-tidy -p . --fix
+	$(Q)find src tests \( -name '*.cpp' -o -name '*.hpp' \) -not -path "./$(BUILD_DIR)/*" -not -path "./$(TARGET_DIR)/*" | xargs clang-tidy -p . --fix $(ARGS)
 
 help:
 	$(Q)echo "Project Build System"

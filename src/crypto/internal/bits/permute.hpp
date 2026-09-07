@@ -1,18 +1,18 @@
-#ifndef BITS_PERMUTATIONS_HPP
-#define BITS_PERMUTATIONS_HPP
+
+#pragma once
 
 #include <cstdint>
 #include <vector>
 
 namespace crypto::bits {
 enum class BitOrder {
-  LittleEndian,
-  BigEndian,
+    LittleEndian,
+    BigEndian,
 };
 
 enum class BitIndexBase {
-  Zero,
-  One,
+    Zero,
+    One,
 };
 
 std::vector<uint8_t> permute(const std::vector<uint8_t> &bits,
@@ -20,5 +20,3 @@ std::vector<uint8_t> permute(const std::vector<uint8_t> &bits,
                              BitIndexBase index_base);
 
 } // namespace crypto::bits
-
-#endif

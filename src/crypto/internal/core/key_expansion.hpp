@@ -1,15 +1,14 @@
-#ifndef CRYPTO_CORE_KEY_EXPANSION_HPP
-#define CRYPTO_CORE_KEY_EXPANSION_HPP
+
+#pragma once
 
 #include <crypto/internal/bytes.hpp>
 
 namespace crypto::core {
-  using RoundKeys = std::vector<Bytes>;
+using RoundKeys = std::vector<Bytes>;
 
-  class KeyExpansion {
+class KeyExpansion {
   public:
     virtual ~KeyExpansion() = default;
-    virtual RoundKeys expand(const Bytes& key) const = 0;
-  };
+    virtual RoundKeys expand(const Bytes &key) const = 0;
+};
 } // namespace crypto::core
-#endif // !CRYPTO_CORE_KEY_EXPANSION_HPP

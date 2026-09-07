@@ -6,6 +6,7 @@ add_library(math STATIC
         prime_test.cpp
         continued_fraction.cpp
         primitive_roots.cpp
+        gf2n/gf2n_polynomial.cpp
 )
 
 

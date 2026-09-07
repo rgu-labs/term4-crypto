@@ -15,9 +15,17 @@ add_library(crypto STATIC
         asymmetric/algorithms/rsa/key_serializer.cpp
         symmetric/algorithms/twofish/twofish.cpp
         symmetric/algorithms/mars/mars.cpp
+        symmetric/algorithms/aes/rijndael_sbox.cpp
+        symmetric/algorithms/aes/rijndael.cpp
         asymmetric/algorithms/dh/dh.cpp
+        asymmetric/algorithms/elgamal/elgamal.cpp
+        asymmetric/algorithms/ntru/ntru.cpp
+        asymmetric/algorithms/rabin/key_generator.cpp
+        asymmetric/algorithms/rabin/rabin.cpp
 )
 
 target_include_directories(crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(crypto PUBLIC math)
+find_package(OpenSSL REQUIRED)
+
+target_link_libraries(crypto PUBLIC math OpenSSL::Crypto)

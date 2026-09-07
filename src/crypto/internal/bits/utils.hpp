@@ -1,5 +1,5 @@
-#ifndef CRYPTO_BITS_UTILS_HPP
-#define CRYPTO_BITS_UTILS_HPP
+
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -7,9 +7,9 @@
 namespace crypto::bits {
 
 enum class MaskType {
-  Or,
-  And,
-  Xor,
+    Or,
+    And,
+    Xor,
 };
 
 std::vector<uint8_t> rotate_left(const std::vector<uint8_t> &bits,
@@ -32,5 +32,3 @@ uint8_t get_bit(const std::vector<uint8_t> &bits, size_t index);
 void set_bit(std::vector<uint8_t> &bits, size_t index, uint8_t val);
 
 } // namespace crypto::bits
-
-#endif // !CRYPTO_BITS_UTILS_HPP

@@ -1,5 +1,5 @@
-#ifndef CRYPTO_ALGORITHMS_MARS_HPP
-#define CRYPTO_ALGORITHMS_MARS_HPP
+
+#pragma once
 
 #include "internal/core/symmetric_cipher.hpp"
 #include <array>
@@ -7,7 +7,7 @@
 
 namespace crypto::mars {
 
-  class MARS final : public core::SymmetricCipher {
+class MARS final : public core::SymmetricCipher {
   public:
     explicit MARS() = default;
 
@@ -23,7 +23,7 @@ namespace crypto::mars {
     static constexpr size_t BLOCK_SIZE = 16;
     static constexpr size_t KEY_WORDS = 40;
 
-    std::array<uint32_t, KEY_WORDS> m_K{};
+    std::array<uint32_t, KEY_WORDS> m_K {};
 
     static const uint32_t SBOX[512];
 
@@ -43,8 +43,6 @@ namespace crypto::mars {
                              const std::array<uint32_t, KEY_WORDS> &K);
     static void core_decrypt(uint32_t &A, uint32_t &B, uint32_t &C, uint32_t &D,
                              const std::array<uint32_t, KEY_WORDS> &K);
-  };
+};
 
 } // namespace crypto::mars
-
-#endif // !CRYPTO_ALGORITHMS_MARS_HPP

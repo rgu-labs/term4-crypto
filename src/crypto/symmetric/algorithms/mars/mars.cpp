@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 namespace crypto::mars {
-  const uint32_t MARS::SBOX[512] = {
+const uint32_t MARS::SBOX[512] = {
     0x09d0c479, 0x28c8ffe0, 0x84aa6c39, 0x9dad7287, 0x7dff9be3, 0xd4268361, 0xc96da1d4, 0x7974cc93, 0x85d0582e,
     0x2a4b5705,
     0x1ca16a62, 0xc3bd279d, 0x0f1f25e5, 0x5160372f, 0xc695c1fb, 0x4d7ff1e4, 0xae5f6bf4, 0x0d72ee46, 0xff23de8a,
@@ -105,268 +105,252 @@ namespace crypto::mars {
     0xda30d0fb,
     0xebc977b6, 0x0b98b40f, 0x3a4d0fe6, 0xdf4fc26b, 0x159cf22a, 0xc298d6e2, 0x2b78ef6a, 0x61a94ac0, 0xab561187,
     0x14eea0f0,
-    0xdf0d4164, 0x19af70ee
-  };
+    0xdf0d4164, 0x19af70ee};
 
-  uint32_t MARS::rol32(uint32_t x, int n) {
+uint32_t MARS::rol32(uint32_t x, int n) {
     return (x << n) | (x >> (32 - n));
-  }
+}
 
-  uint32_t MARS::ror32(uint32_t x, int n) {
+uint32_t MARS::ror32(uint32_t x, int n) {
     return (x >> n) | (x << (32 - n));
-  }
+}
 
 
-  void MARS::key_schedule(const Bytes& key) {
+void MARS::key_schedule(const Bytes &key) {
     size_t key_len = key.size();
     if (key_len < 16 || key_len > 56 || key_len % 4 != 0) {
-      throw std::invalid_argument("MARS: key must be 16..56 bytes, multiple of 4");
+        throw std::invalid_argument("MARS: key must be 16..56 bytes, multiple of 4");
     }
 
-    int n = (int)(key_len / 4);
+    int n = static_cast<int>(key_len / 4);
 
     uint32_t T[15] = {};
     for (int i = 0; i < n; i++) {
-      T[i] = (uint32_t)key[4 * i]
-        | ((uint32_t)key[4 * i + 1] << 8)
-        | ((uint32_t)key[4 * i + 2] << 16)
-        | ((uint32_t)key[4 * i + 3] << 24);
+        T[i] = static_cast<uint32_t>(key[4 * i]) | (static_cast<uint32_t>(key[4 * i + 1]) << 8) | (static_cast<uint32_t>(key[4 * i + 2]) << 16) | (static_cast<uint32_t>(key[4 * i + 3]) << 24);
     }
-    T[n] = (uint32_t)n;
+    T[n] = static_cast<uint32_t>(n);
     for (int i = n + 1; i < 15; i++) {
-      T[i] = 0;
+        T[i] = 0;
     }
 
     static constexpr uint32_t B[4] = {0xa4a8d57b, 0x5b5d193b, 0xc8a8309b, 0x73f9a978};
 
     for (int j = 0; j < 4; j++) {
-      for (int i = 0; i < 15; i++) {
-        T[i] ^= (rol32(T[(i - 7 + 15) % 15] ^ T[(i - 2 + 15) % 15], 3)) ^ (uint32_t)(4 * i + j);
-      }
-      for (int iter = 0; iter < 4; iter++) {
         for (int i = 0; i < 15; i++) {
-          T[i] = rol32(T[i] + SBOX[T[(i - 1 + 15) % 15] & 0x1FF], 9);
+            T[i] ^= (rol32(T[(i - 7 + 15) % 15] ^ T[(i - 2 + 15) % 15], 3)) ^ static_cast<uint32_t>(4 * i + j);
         }
-      }
-      for (int i = 0; i < 10; i++) {
-        m_K[10 * j + i] = T[(4 * i) % 15];
-      }
+        for (int iter = 0; iter < 4; iter++) {
+            for (int i = 0; i < 15; i++) {
+                T[i] = rol32(T[i] + SBOX[T[(i - 1 + 15) % 15] & 0x1FF], 9);
+            }
+        }
+        for (int i = 0; i < 10; i++) {
+            m_K[10 * j + i] = T[(4 * i) % 15];
+        }
     }
 
     for (int i = 5; i <= 35; i += 2) {
-      int j = (int)(m_K[i] & 3);
-      uint32_t w = m_K[i] | 3;
+        int      j = static_cast<int>(m_K[i] & 3);
+        uint32_t w = m_K[i] | 3;
 
-      uint32_t M = 0;
-      for (int bit = 2; bit <= 30; bit++) {
-        int run_val = (int)((w >> bit) & 1);
-        int len = 1, lo = bit - 1, hi = bit + 1;
-        while (lo >= 0 && (int)((w >> lo) & 1) == run_val) {
-          len++;
-          lo--;
+        uint32_t M = 0;
+        for (int bit = 2; bit <= 30; bit++) {
+            int run_val = static_cast<int>((w >> bit) & 1);
+            int len = 1, lo = bit - 1, hi = bit + 1;
+            while (lo >= 0 && static_cast<int>((w >> lo) & 1) == run_val) {
+                len++;
+                lo--;
+            }
+            while (hi <= 31 && static_cast<int>((w >> hi) & 1) == run_val) {
+                len++;
+                hi++;
+            }
+            if (len >= 10) {
+                int prev = static_cast<int>((w >> (bit - 1)) & 1);
+                int curr = static_cast<int>((w >> bit) & 1);
+                int next = static_cast<int>((w >> (bit + 1)) & 1);
+                if (prev == curr && curr == next) {
+                    M |= (1u << bit);
+                }
+            }
         }
-        while (hi <= 31 && (int)((w >> hi) & 1) == run_val) {
-          len++;
-          hi++;
-        }
-        if (len >= 10) {
-          int prev = (int)((w >> (bit - 1)) & 1);
-          int curr = (int)((w >> bit) & 1);
-          int next = (int)((w >> (bit + 1)) & 1);
-          if (prev == curr && curr == next) {
-            M |= (1u << bit);
-          }
-        }
-      }
 
-      int r = (int)(m_K[i - 1] & 31);
-      uint32_t p = rol32(B[j], r);
-      m_K[i] = w ^ (p & M);
+        int      r = static_cast<int>(m_K[i - 1] & 31);
+        uint32_t p = rol32(B[j], r);
+        m_K[i] = w ^ (p & M);
     }
-  }
+}
 
-  void MARS::e_func(uint32_t A, uint32_t Kei, uint32_t Koi,
-                    uint32_t& L, uint32_t& M, uint32_t& R) {
+void MARS::e_func(uint32_t A, uint32_t Kei, uint32_t Koi,
+                  uint32_t &L, uint32_t &M, uint32_t &R) {
     R = rol32(A, 13) * Koi;
     M = A + Kei;
     R = rol32(R, 5);
-    M = rol32(M, (int)(R >> 5) & 31);
+    M = rol32(M, static_cast<int>(R >> 5) & 31);
     L = SBOX[M & 0x1FF];
     L ^= (R >> 5);
     L ^= R;
     R = rol32(R, 5);
-    L = rol32(L, (int)R & 31);
-  }
+    L = rol32(L, static_cast<int>(R) & 31);
+}
 
-  void MARS::forward_mix(uint32_t& A, uint32_t& B, uint32_t& C, uint32_t& D,
-                         const std::array<uint32_t, KEY_WORDS>& K) {
+void MARS::forward_mix(uint32_t &A, uint32_t &B, uint32_t &C, uint32_t &D,
+                       const std::array<uint32_t, KEY_WORDS> &K) {
     A += K[0];
     B += K[1];
     C += K[2];
     D += K[3];
 
     for (int i = 0; i < 8; i++) {
-      auto b0 = (uint8_t)(A);
-      auto b1 = (uint8_t)(A >> 8);
-      auto b2 = (uint8_t)(A >> 16);
-      auto b3 = (uint8_t)(A >> 24);
+        auto b0 = static_cast<uint8_t>(A);
+        auto b1 = static_cast<uint8_t>(A >> 8);
+        auto b2 = static_cast<uint8_t>(A >> 16);
+        auto b3 = static_cast<uint8_t>(A >> 24);
 
-      B = (B ^ SBOX[b0]) + SBOX[256 + b1];
-      C = C + SBOX[b2];
-      D = D ^ SBOX[256 + b3];
+        B = (B ^ SBOX[b0]) + SBOX[256 + b1];
+        C = C + SBOX[b2];
+        D = D ^ SBOX[256 + b3];
 
-      A = ror32(A, 24);
-      if (i == 0 || i == 4) {
-        A += D;
-      }
-      else if (i == 1 || i == 5) {
-        A += B;
-      }
+        A = ror32(A, 24);
+        if (i == 0 || i == 4) {
+            A += D;
+        } else if (i == 1 || i == 5) {
+            A += B;
+        }
 
-      uint32_t tmp = A;
-      A = B;
-      B = C;
-      C = D;
-      D = tmp;
+        uint32_t tmp = A;
+        A = B;
+        B = C;
+        C = D;
+        D = tmp;
     }
-  }
+}
 
-  void MARS::backwards_mix(uint32_t& A, uint32_t& B, uint32_t& C, uint32_t& D,
-                           const std::array<uint32_t, KEY_WORDS>& K) {
+void MARS::backwards_mix(uint32_t &A, uint32_t &B, uint32_t &C, uint32_t &D,
+                         const std::array<uint32_t, KEY_WORDS> &K) {
     for (int i = 0; i < 8; i++) {
-      if (i == 2 || i == 6) {
-        A -= D;
-      }
-      else if (i == 3 || i == 7) {
-        A -= B;
-      }
+        if (i == 2 || i == 6) {
+            A -= D;
+        } else if (i == 3 || i == 7) {
+            A -= B;
+        }
 
-      B = B ^ SBOX[256 + (A & 0xFF)];
-      C = C - SBOX[rol32(A, 8) & 0xFF];
-      D = (D - SBOX[256 + (rol32(A, 16) & 0xFF)]) ^ SBOX[rol32(A, 24) & 0xFF];
+        B = B ^ SBOX[256 + (A & 0xFF)];
+        C = C - SBOX[rol32(A, 8) & 0xFF];
+        D = (D - SBOX[256 + (rol32(A, 16) & 0xFF)]) ^ SBOX[rol32(A, 24) & 0xFF];
 
-      uint32_t tmp = rol32(A, 24);
-      A = B;
-      B = C;
-      C = D;
-      D = tmp;
+        uint32_t tmp = rol32(A, 24);
+        A = B;
+        B = C;
+        C = D;
+        D = tmp;
     }
 
     A -= K[36];
     B -= K[37];
     C -= K[38];
     D -= K[39];
-  }
+}
 
-  void MARS::core_encrypt(uint32_t& A, uint32_t& B, uint32_t& C, uint32_t& D,
-                          const std::array<uint32_t, KEY_WORDS>& K) {
+void MARS::core_encrypt(uint32_t &A, uint32_t &B, uint32_t &C, uint32_t &D,
+                        const std::array<uint32_t, KEY_WORDS> &K) {
     for (int i = 0; i < 16; i++) {
-      uint32_t L, M, R;
-      e_func(A, K[2 * i + 4], K[2 * i + 5], L, M, R);
+        uint32_t L, M, R;
+        e_func(A, K[2 * i + 4], K[2 * i + 5], L, M, R);
 
-      if (i < 8) {
-        B += L;
-        C += M;
-        D ^= R;
-      }
-      else {
-        B ^= R;
-        C += M;
-        D += L;
-      }
+        if (i < 8) {
+            B += L;
+            C += M;
+            D ^= R;
+        } else {
+            B ^= R;
+            C += M;
+            D += L;
+        }
 
-      uint32_t tmp = rol32(A, 13);
-      A = B;
-      B = C;
-      C = D;
-      D = tmp;
+        uint32_t tmp = rol32(A, 13);
+        A = B;
+        B = C;
+        C = D;
+        D = tmp;
     }
-  }
+}
 
-  void MARS::core_decrypt(uint32_t& A, uint32_t& B, uint32_t& C, uint32_t& D,
-                          const std::array<uint32_t, KEY_WORDS>& K) {
+void MARS::core_decrypt(uint32_t &A, uint32_t &B, uint32_t &C, uint32_t &D,
+                        const std::array<uint32_t, KEY_WORDS> &K) {
     for (int i = 15; i >= 0; i--) {
-      uint32_t tmp = ror32(D, 13);
-      D = C;
-      C = B;
-      B = A;
-      A = tmp;
+        uint32_t tmp = ror32(D, 13);
+        D = C;
+        C = B;
+        B = A;
+        A = tmp;
 
-      uint32_t L, M, R;
-      e_func(A, K[2 * i + 4], K[2 * i + 5], L, M, R);
+        uint32_t L, M, R;
+        e_func(A, K[2 * i + 4], K[2 * i + 5], L, M, R);
 
-      if (i < 8) {
-        B -= L;
-        C -= M;
-        D ^= R;
-      }
-      else {
-        B ^= R;
-        C -= M;
-        D -= L;
-      }
+        if (i < 8) {
+            B -= L;
+            C -= M;
+            D ^= R;
+        } else {
+            B ^= R;
+            C -= M;
+            D -= L;
+        }
     }
-  }
+}
 
-  void MARS::set_encryption_key(const Bytes& key) {
+void MARS::set_encryption_key(const Bytes &key) {
     key_schedule(key);
-  }
+}
 
-  void MARS::set_decryption_key(const Bytes& key) {
+void MARS::set_decryption_key(const Bytes &key) {
     key_schedule(key);
-  }
+}
 
-  Bytes MARS::encrypt_block(const Bytes& block) const {
+Bytes MARS::encrypt_block(const Bytes &block) const {
     if (block.size() != BLOCK_SIZE) {
-      throw std::invalid_argument("MARS: block must be 16 bytes");
+        throw std::invalid_argument("MARS: block must be 16 bytes");
     }
 
-    uint32_t A = (uint32_t)block[0] | ((uint32_t)block[1] << 8) | ((uint32_t)block[2] << 16) | ((uint32_t)block[3] <<
-      24);
-    uint32_t B = (uint32_t)block[4] | ((uint32_t)block[5] << 8) | ((uint32_t)block[6] << 16) | ((uint32_t)block[7] <<
-      24);
-    uint32_t C = (uint32_t)block[8] | ((uint32_t)block[9] << 8) | ((uint32_t)block[10] << 16) | ((uint32_t)block[11] <<
-      24);
-    uint32_t D = (uint32_t)block[12] | ((uint32_t)block[13] << 8) | ((uint32_t)block[14] << 16) | ((uint32_t)block[15]
-      << 24);
+    uint32_t A = static_cast<uint32_t>(block[0]) | (static_cast<uint32_t>(block[1]) << 8) | (static_cast<uint32_t>(block[2]) << 16) | (static_cast<uint32_t>(block[3]) << 24);
+    uint32_t B = static_cast<uint32_t>(block[4]) | (static_cast<uint32_t>(block[5]) << 8) | (static_cast<uint32_t>(block[6]) << 16) | (static_cast<uint32_t>(block[7]) << 24);
+    uint32_t C = static_cast<uint32_t>(block[8]) | (static_cast<uint32_t>(block[9]) << 8) | (static_cast<uint32_t>(block[10]) << 16) | (static_cast<uint32_t>(block[11]) << 24);
+    uint32_t D = static_cast<uint32_t>(block[12]) | (static_cast<uint32_t>(block[13]) << 8) | (static_cast<uint32_t>(block[14]) << 16) | (static_cast<uint32_t>(block[15]) << 24);
 
     forward_mix(A, B, C, D, m_K);
     core_encrypt(A, B, C, D, m_K);
     backwards_mix(A, B, C, D, m_K);
 
     Bytes result(16);
-    result[0] = (uint8_t)(A);
-    result[1] = (uint8_t)(A >> 8);
-    result[2] = (uint8_t)(A >> 16);
-    result[3] = (uint8_t)(A >> 24);
-    result[4] = (uint8_t)(B);
-    result[5] = (uint8_t)(B >> 8);
-    result[6] = (uint8_t)(B >> 16);
-    result[7] = (uint8_t)(B >> 24);
-    result[8] = (uint8_t)(C);
-    result[9] = (uint8_t)(C >> 8);
-    result[10] = (uint8_t)(C >> 16);
-    result[11] = (uint8_t)(C >> 24);
-    result[12] = (uint8_t)(D);
-    result[13] = (uint8_t)(D >> 8);
-    result[14] = (uint8_t)(D >> 16);
-    result[15] = (uint8_t)(D >> 24);
+    result[0] = static_cast<uint8_t>(A);
+    result[1] = static_cast<uint8_t>(A >> 8);
+    result[2] = static_cast<uint8_t>(A >> 16);
+    result[3] = static_cast<uint8_t>(A >> 24);
+    result[4] = static_cast<uint8_t>(B);
+    result[5] = static_cast<uint8_t>(B >> 8);
+    result[6] = static_cast<uint8_t>(B >> 16);
+    result[7] = static_cast<uint8_t>(B >> 24);
+    result[8] = static_cast<uint8_t>(C);
+    result[9] = static_cast<uint8_t>(C >> 8);
+    result[10] = static_cast<uint8_t>(C >> 16);
+    result[11] = static_cast<uint8_t>(C >> 24);
+    result[12] = static_cast<uint8_t>(D);
+    result[13] = static_cast<uint8_t>(D >> 8);
+    result[14] = static_cast<uint8_t>(D >> 16);
+    result[15] = static_cast<uint8_t>(D >> 24);
     return result;
-  }
+}
 
-  Bytes MARS::decrypt_block(const Bytes& block) const {
+Bytes MARS::decrypt_block(const Bytes &block) const {
     if (block.size() != BLOCK_SIZE) {
-      throw std::invalid_argument("MARS: block must be 16 bytes");
+        throw std::invalid_argument("MARS: block must be 16 bytes");
     }
 
-    uint32_t A = (uint32_t)block[0] | ((uint32_t)block[1] << 8) | ((uint32_t)block[2] << 16) | ((uint32_t)block[3] <<
-      24);
-    uint32_t B = (uint32_t)block[4] | ((uint32_t)block[5] << 8) | ((uint32_t)block[6] << 16) | ((uint32_t)block[7] <<
-      24);
-    uint32_t C = (uint32_t)block[8] | ((uint32_t)block[9] << 8) | ((uint32_t)block[10] << 16) | ((uint32_t)block[11] <<
-      24);
-    uint32_t D = (uint32_t)block[12] | ((uint32_t)block[13] << 8) | ((uint32_t)block[14] << 16) | ((uint32_t)block[15]
-      << 24);
+    uint32_t A = static_cast<uint32_t>(block[0]) | (static_cast<uint32_t>(block[1]) << 8) | (static_cast<uint32_t>(block[2]) << 16) | (static_cast<uint32_t>(block[3]) << 24);
+    uint32_t B = static_cast<uint32_t>(block[4]) | (static_cast<uint32_t>(block[5]) << 8) | (static_cast<uint32_t>(block[6]) << 16) | (static_cast<uint32_t>(block[7]) << 24);
+    uint32_t C = static_cast<uint32_t>(block[8]) | (static_cast<uint32_t>(block[9]) << 8) | (static_cast<uint32_t>(block[10]) << 16) | (static_cast<uint32_t>(block[11]) << 24);
+    uint32_t D = static_cast<uint32_t>(block[12]) | (static_cast<uint32_t>(block[13]) << 8) | (static_cast<uint32_t>(block[14]) << 16) | (static_cast<uint32_t>(block[15]) << 24);
 
     A += m_K[36];
     B += m_K[37];
@@ -374,50 +358,48 @@ namespace crypto::mars {
     D += m_K[39];
 
     for (int i = 7; i >= 0; i--) {
-      uint32_t tmp = ror32(D, 24);
-      D = C;
-      C = B;
-      B = A;
-      A = tmp;
+        uint32_t tmp = ror32(D, 24);
+        D = C;
+        C = B;
+        B = A;
+        A = tmp;
 
-      D = (D ^ SBOX[rol32(A, 24) & 0xFF]) + SBOX[256 + (rol32(A, 16) & 0xFF)];
-      C = C + SBOX[rol32(A, 8) & 0xFF];
-      B = B ^ SBOX[256 + (A & 0xFF)];
+        D = (D ^ SBOX[rol32(A, 24) & 0xFF]) + SBOX[256 + (rol32(A, 16) & 0xFF)];
+        C = C + SBOX[rol32(A, 8) & 0xFF];
+        B = B ^ SBOX[256 + (A & 0xFF)];
 
-      if (i == 2 || i == 6) {
-        A += D;
-      }
-      else if (i == 3 || i == 7) {
-        A += B;
-      }
+        if (i == 2 || i == 6) {
+            A += D;
+        } else if (i == 3 || i == 7) {
+            A += B;
+        }
     }
 
     core_decrypt(A, B, C, D, m_K);
 
     for (int i = 7; i >= 0; i--) {
-      uint32_t tmp = D;
-      D = C;
-      C = B;
-      B = A;
-      A = tmp;
+        uint32_t tmp = D;
+        D = C;
+        C = B;
+        B = A;
+        A = tmp;
 
-      if (i == 0 || i == 4) {
-        A -= D;
-      }
-      else if (i == 1 || i == 5) {
-        A -= B;
-      }
+        if (i == 0 || i == 4) {
+            A -= D;
+        } else if (i == 1 || i == 5) {
+            A -= B;
+        }
 
-      A = rol32(A, 24);
+        A = rol32(A, 24);
 
-      auto b0 = (uint8_t)(A);
-      auto b1 = (uint8_t)(A >> 8);
-      auto b2 = (uint8_t)(A >> 16);
-      auto b3 = (uint8_t)(A >> 24);
+        auto b0 = static_cast<uint8_t>(A);
+        auto b1 = static_cast<uint8_t>(A >> 8);
+        auto b2 = static_cast<uint8_t>(A >> 16);
+        auto b3 = static_cast<uint8_t>(A >> 24);
 
-      D = D ^ SBOX[256 + b3];
-      C = C - SBOX[b2];
-      B = (B - SBOX[256 + b1]) ^ SBOX[b0];
+        D = D ^ SBOX[256 + b3];
+        C = C - SBOX[b2];
+        B = (B - SBOX[256 + b1]) ^ SBOX[b0];
     }
 
     A -= m_K[0];
@@ -426,26 +408,26 @@ namespace crypto::mars {
     D -= m_K[3];
 
     Bytes result(16);
-    result[0] = (uint8_t)(A);
-    result[1] = (uint8_t)(A >> 8);
-    result[2] = (uint8_t)(A >> 16);
-    result[3] = (uint8_t)(A >> 24);
-    result[4] = (uint8_t)(B);
-    result[5] = (uint8_t)(B >> 8);
-    result[6] = (uint8_t)(B >> 16);
-    result[7] = (uint8_t)(B >> 24);
-    result[8] = (uint8_t)(C);
-    result[9] = (uint8_t)(C >> 8);
-    result[10] = (uint8_t)(C >> 16);
-    result[11] = (uint8_t)(C >> 24);
-    result[12] = (uint8_t)(D);
-    result[13] = (uint8_t)(D >> 8);
-    result[14] = (uint8_t)(D >> 16);
-    result[15] = (uint8_t)(D >> 24);
+    result[0] = static_cast<uint8_t>(A);
+    result[1] = static_cast<uint8_t>(A >> 8);
+    result[2] = static_cast<uint8_t>(A >> 16);
+    result[3] = static_cast<uint8_t>(A >> 24);
+    result[4] = static_cast<uint8_t>(B);
+    result[5] = static_cast<uint8_t>(B >> 8);
+    result[6] = static_cast<uint8_t>(B >> 16);
+    result[7] = static_cast<uint8_t>(B >> 24);
+    result[8] = static_cast<uint8_t>(C);
+    result[9] = static_cast<uint8_t>(C >> 8);
+    result[10] = static_cast<uint8_t>(C >> 16);
+    result[11] = static_cast<uint8_t>(C >> 24);
+    result[12] = static_cast<uint8_t>(D);
+    result[13] = static_cast<uint8_t>(D >> 8);
+    result[14] = static_cast<uint8_t>(D >> 16);
+    result[15] = static_cast<uint8_t>(D >> 24);
     return result;
-  }
+}
 
-  size_t MARS::block_size() const {
+size_t MARS::block_size() const {
     return BLOCK_SIZE;
-  }
+}
 } // namespace crypto::mars

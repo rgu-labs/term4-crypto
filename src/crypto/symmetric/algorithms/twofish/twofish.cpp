@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 namespace crypto::twofish {
-  const uint8_t Twofish::Q0[256] = {
+const uint8_t Twofish::Q0[256] = {
     0xA9, 0x67, 0xB3, 0xE8, 0x04, 0xFD, 0xA3, 0x76,
     0x9A, 0x92, 0x80, 0x78, 0xE4, 0xDD, 0xD1, 0x38,
     0x0D, 0xC6, 0x35, 0x98, 0x18, 0xF7, 0xEC, 0x6C,
@@ -34,10 +34,9 @@ namespace crypto::twofish {
     0x6E, 0x50, 0xDE, 0x68, 0x65, 0xBC, 0xDB, 0xF8,
     0xC8, 0xA8, 0x2B, 0x40, 0xDC, 0xFE, 0x32, 0xA4,
     0xCA, 0x10, 0x21, 0xF0, 0xD3, 0x5D, 0x0F, 0x00,
-    0x6F, 0x9D, 0x36, 0x42, 0x4A, 0x5E, 0xC1, 0xE0
-  };
+    0x6F, 0x9D, 0x36, 0x42, 0x4A, 0x5E, 0xC1, 0xE0};
 
-  const uint8_t Twofish::Q1[256] = {
+const uint8_t Twofish::Q1[256] = {
     0x75, 0xF3, 0xC6, 0xF4, 0xDB, 0x7B, 0xFB, 0xC8,
     0x4A, 0xD3, 0xE6, 0x6B, 0x45, 0x7D, 0xE8, 0x4B,
     0xD6, 0x32, 0xD8, 0xFD, 0x37, 0x71, 0xF1, 0xE1,
@@ -69,238 +68,218 @@ namespace crypto::twofish {
     0x22, 0xC9, 0xC0, 0x9B, 0x89, 0xD4, 0xED, 0xAB,
     0x12, 0xA2, 0x0D, 0x52, 0xBB, 0x02, 0x2F, 0xA9,
     0xD7, 0x61, 0x1E, 0xB4, 0x50, 0x04, 0xF6, 0xC2,
-    0x16, 0x25, 0x86, 0x56, 0x55, 0x09, 0xBE, 0x91
-  };
+    0x16, 0x25, 0x86, 0x56, 0x55, 0x09, 0xBE, 0x91};
 
-  const uint8_t Twofish::MDS[4][4] = {
+const uint8_t Twofish::MDS[4][4] = {
     {0x01, 0xEF, 0x5B, 0x5B},
     {0x5B, 0xEF, 0xEF, 0x01},
     {0xEF, 0x5B, 0x01, 0xEF},
-    {0xEF, 0x01, 0xEF, 0x5B}
-  };
+    {0xEF, 0x01, 0xEF, 0x5B}};
 
-  const uint8_t Twofish::RS[4][8] = {
+const uint8_t Twofish::RS[4][8] = {
     {0x01, 0xA4, 0x55, 0x87, 0x5A, 0x58, 0xDB, 0x9E},
     {0xA4, 0x56, 0x82, 0xF3, 0x1E, 0xC6, 0x68, 0xE5},
     {0x02, 0xA1, 0xFC, 0xC1, 0x47, 0xAE, 0x3D, 0x19},
-    {0xA4, 0x55, 0x87, 0x5A, 0x58, 0xDB, 0x9E, 0x03}
-  };
+    {0xA4, 0x55, 0x87, 0x5A, 0x58, 0xDB, 0x9E, 0x03}};
 
-  uint8_t Twofish::gf_mult(uint8_t a, uint8_t b, uint8_t poly) {
+uint8_t Twofish::gf_mult(uint8_t a, uint8_t b, uint8_t poly) {
     uint8_t result = 0;
     for (int i = 0; i < 8; i++) {
-      if (b & 1) {
-        result ^= a;
-      }
-      uint8_t hi = a & 0x80;
-      a <<= 1;
-      if (hi) {
-        a ^= poly;
-      }
-      b >>= 1;
+        if (b & 1) {
+            result ^= a;
+        }
+        uint8_t hi = a & 0x80;
+        a <<= 1;
+        if (hi) {
+            a ^= poly;
+        }
+        b >>= 1;
     }
     return result;
-  }
+}
 
-  uint32_t Twofish::mds_mult(uint8_t y0, uint8_t y1, uint8_t y2, uint8_t y3) {
+uint32_t Twofish::mds_mult(uint8_t y0, uint8_t y1, uint8_t y2, uint8_t y3) {
     uint8_t in[4] = {y0, y1, y2, y3};
     uint8_t out[4] = {0, 0, 0, 0};
     for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        out[i] ^= gf_mult(MDS[i][j], in[j], 0x69);
-      }
+        for (int j = 0; j < 4; j++) {
+            out[i] ^= gf_mult(MDS[i][j], in[j], 0x69);
+        }
     }
-    return (uint32_t)out[0]
-      | ((uint32_t)out[1] << 8)
-      | ((uint32_t)out[2] << 16)
-      | ((uint32_t)out[3] << 24);
-  }
+    return static_cast<uint32_t>(out[0]) | (static_cast<uint32_t>(out[1]) << 8) | (static_cast<uint32_t>(out[2]) << 16) | (static_cast<uint32_t>(out[3]) << 24);
+}
 
-  uint32_t Twofish::rs_mult(const uint8_t* key8, int group) {
+uint32_t Twofish::rs_mult(const uint8_t *key8, int group) {
     uint8_t out[4] = {0, 0, 0, 0};
     for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 8; j++) {
-        out[i] ^= gf_mult(RS[i][j], key8[group * 8 + j], 0x4D);
-      }
+        for (int j = 0; j < 8; j++) {
+            out[i] ^= gf_mult(RS[i][j], key8[group * 8 + j], 0x4D);
+        }
     }
-    return (uint32_t)out[0]
-      | ((uint32_t)out[1] << 8)
-      | ((uint32_t)out[2] << 16)
-      | ((uint32_t)out[3] << 24);
-  }
+    return static_cast<uint32_t>(out[0]) | (static_cast<uint32_t>(out[1]) << 8) | (static_cast<uint32_t>(out[2]) << 16) | (static_cast<uint32_t>(out[3]) << 24);
+}
 
-  uint8_t Twofish::q_byte(const uint8_t* q, uint8_t x) {
+uint8_t Twofish::q_byte(const uint8_t *q, uint8_t x) {
     return q[x];
-  }
+}
 
-  uint32_t Twofish::rol32(uint32_t x, int n) {
+uint32_t Twofish::rol32(uint32_t x, int n) {
     return (x << n) | (x >> (32 - n));
-  }
+}
 
-  uint32_t Twofish::ror32(uint32_t x, int n) {
+uint32_t Twofish::ror32(uint32_t x, int n) {
     return (x >> n) | (x << (32 - n));
-  }
+}
 
-  void Twofish::key_schedule(const Bytes& key) {
+void Twofish::key_schedule(const Bytes &key) {
     size_t key_len = key.size();
     if (key_len != 16 && key_len != 24 && key_len != 32) {
-      throw std::invalid_argument("Twofish: key must be 16, 24 or 32 bytes");
+        throw std::invalid_argument("Twofish: key must be 16, 24 or 32 bytes");
     }
 
-    m_k = (int)(key_len / 8);
+    m_k = static_cast<int>(key_len / 8);
 
     Bytes padded_key(32, 0);
-    for (int i = 0; i < (int)key_len; i++) {
-      padded_key[i] = key[i];
+    for (int i = 0; i < static_cast<int>(key_len); i++) {
+        padded_key[i] = key[i];
     }
 
-    std::array<uint32_t, 4> Me{}, Mo{}, S{};
+    std::array<uint32_t, 4> Me {}, Mo {}, S {};
 
     for (int i = 0; i < m_k; i++) {
-      uint32_t word = 0;
-      for (int j = 0; j < 4; j++) {
-        word |= ((uint32_t)padded_key[8 * i + j * 2]) << (j * 8);
-      }
-      Me[i] = word;
+        uint32_t word = 0;
+        for (int j = 0; j < 4; j++) {
+            word |= (static_cast<uint32_t>(padded_key[8 * i + j * 2])) << (j * 8);
+        }
+        Me[i] = word;
 
-      word = 0;
-      for (int j = 0; j < 4; j++) {
-        word |= ((uint32_t)padded_key[8 * i + j * 2 + 1]) << (j * 8);
-      }
-      Mo[i] = word;
+        word = 0;
+        for (int j = 0; j < 4; j++) {
+            word |= (static_cast<uint32_t>(padded_key[8 * i + j * 2 + 1])) << (j * 8);
+        }
+        Mo[i] = word;
 
-      S[m_k - 1 - i] = rs_mult(padded_key.data(), i);
+        S[m_k - 1 - i] = rs_mult(padded_key.data(), i);
     }
 
-    std::array<uint32_t, 4> S_arr{};
+    std::array<uint32_t, 4> S_arr {};
     for (int i = 0; i < m_k; i++) {
-      S_arr[i] = S[i];
+        S_arr[i] = S[i];
     }
 
     uint32_t rho = 0x01010101u;
     for (int i = 0; i < 20; i++) {
-      uint32_t A = h_func((uint32_t)(2 * i) * rho, Me, m_k);
-      uint32_t B = rol32(h_func((uint32_t)(2 * i + 1) * rho, Mo, m_k), 8);
-      m_subkeys[2 * i] = (A + B) & 0xFFFFFFFFu;
-      m_subkeys[2 * i + 1] = rol32((A + 2 * B) & 0xFFFFFFFFu, 9);
+        uint32_t A = h_func(static_cast<uint32_t>(2 * i) * rho, Me, m_k);
+        uint32_t B = rol32(h_func(static_cast<uint32_t>(2 * i + 1) * rho, Mo, m_k), 8);
+        m_subkeys[2 * i] = (A + B) & 0xFFFFFFFFu;
+        m_subkeys[2 * i + 1] = rol32((A + 2 * B) & 0xFFFFFFFFu, 9);
     }
 
     for (int i = 0; i < 256; i++) {
-      auto x = (uint8_t)i;
-      uint8_t b0, b1, b2, b3;
+        auto    x = static_cast<uint8_t>(i);
+        uint8_t b0, b1, b2, b3;
 
-      if (m_k == 4) {
-        b0 = Q1[x] ^ (uint8_t)(S_arr[3]);
-        b1 = Q0[x] ^ (uint8_t)(S_arr[3] >> 8);
-        b2 = Q0[x] ^ (uint8_t)(S_arr[3] >> 16);
-        b3 = Q1[x] ^ (uint8_t)(S_arr[3] >> 24);
-        b0 = Q1[b0] ^ (uint8_t)(S_arr[2]);
-        b1 = Q1[b1] ^ (uint8_t)(S_arr[2] >> 8);
-        b2 = Q0[b2] ^ (uint8_t)(S_arr[2] >> 16);
-        b3 = Q0[b3] ^ (uint8_t)(S_arr[2] >> 24);
-        b0 = Q0[Q1[b0] ^ (uint8_t)(S_arr[1])] ^ (uint8_t)(S_arr[0]);
-        b1 = Q0[Q0[b1] ^ (uint8_t)(S_arr[1] >> 8)] ^ (uint8_t)(S_arr[0] >> 8);
-        b2 = Q1[Q1[b2] ^ (uint8_t)(S_arr[1] >> 16)] ^ (uint8_t)(S_arr[0] >> 16);
-        b3 = Q1[Q0[b3] ^ (uint8_t)(S_arr[1] >> 24)] ^ (uint8_t)(S_arr[0] >> 24);
-      }
-      else if (m_k == 3) {
-        b0 = Q1[x] ^ (uint8_t)(S_arr[2]);
-        b1 = Q0[x] ^ (uint8_t)(S_arr[2] >> 8);
-        b2 = Q0[x] ^ (uint8_t)(S_arr[2] >> 16);
-        b3 = Q1[x] ^ (uint8_t)(S_arr[2] >> 24);
-        b0 = Q0[Q1[b0] ^ (uint8_t)(S_arr[1])] ^ (uint8_t)(S_arr[0]);
-        b1 = Q0[Q0[b1] ^ (uint8_t)(S_arr[1] >> 8)] ^ (uint8_t)(S_arr[0] >> 8);
-        b2 = Q1[Q1[b2] ^ (uint8_t)(S_arr[1] >> 16)] ^ (uint8_t)(S_arr[0] >> 16);
-        b3 = Q1[Q0[b3] ^ (uint8_t)(S_arr[1] >> 24)] ^ (uint8_t)(S_arr[0] >> 24);
-      }
-      else {
-        b0 = Q0[Q1[x] ^ (uint8_t)(S_arr[1])] ^ (uint8_t)(S_arr[0]);
-        b1 = Q0[Q0[x] ^ (uint8_t)(S_arr[1] >> 8)] ^ (uint8_t)(S_arr[0] >> 8);
-        b2 = Q1[Q1[x] ^ (uint8_t)(S_arr[1] >> 16)] ^ (uint8_t)(S_arr[0] >> 16);
-        b3 = Q1[Q0[x] ^ (uint8_t)(S_arr[1] >> 24)] ^ (uint8_t)(S_arr[0] >> 24);
-      }
+        if (m_k == 4) {
+            b0 = Q1[x] ^ static_cast<uint8_t>(S_arr[3]);
+            b1 = Q0[x] ^ static_cast<uint8_t>(S_arr[3] >> 8);
+            b2 = Q0[x] ^ static_cast<uint8_t>(S_arr[3] >> 16);
+            b3 = Q1[x] ^ static_cast<uint8_t>(S_arr[3] >> 24);
+            b0 = Q1[b0] ^ static_cast<uint8_t>(S_arr[2]);
+            b1 = Q1[b1] ^ static_cast<uint8_t>(S_arr[2] >> 8);
+            b2 = Q0[b2] ^ static_cast<uint8_t>(S_arr[2] >> 16);
+            b3 = Q0[b3] ^ static_cast<uint8_t>(S_arr[2] >> 24);
+            b0 = Q0[Q1[b0] ^ static_cast<uint8_t>(S_arr[1])] ^ static_cast<uint8_t>(S_arr[0]);
+            b1 = Q0[Q0[b1] ^ static_cast<uint8_t>(S_arr[1] >> 8)] ^ static_cast<uint8_t>(S_arr[0] >> 8);
+            b2 = Q1[Q1[b2] ^ static_cast<uint8_t>(S_arr[1] >> 16)] ^ static_cast<uint8_t>(S_arr[0] >> 16);
+            b3 = Q1[Q0[b3] ^ static_cast<uint8_t>(S_arr[1] >> 24)] ^ static_cast<uint8_t>(S_arr[0] >> 24);
+        } else if (m_k == 3) {
+            b0 = Q1[x] ^ static_cast<uint8_t>(S_arr[2]);
+            b1 = Q0[x] ^ static_cast<uint8_t>(S_arr[2] >> 8);
+            b2 = Q0[x] ^ static_cast<uint8_t>(S_arr[2] >> 16);
+            b3 = Q1[x] ^ static_cast<uint8_t>(S_arr[2] >> 24);
+            b0 = Q0[Q1[b0] ^ static_cast<uint8_t>(S_arr[1])] ^ static_cast<uint8_t>(S_arr[0]);
+            b1 = Q0[Q0[b1] ^ static_cast<uint8_t>(S_arr[1] >> 8)] ^ static_cast<uint8_t>(S_arr[0] >> 8);
+            b2 = Q1[Q1[b2] ^ static_cast<uint8_t>(S_arr[1] >> 16)] ^ static_cast<uint8_t>(S_arr[0] >> 16);
+            b3 = Q1[Q0[b3] ^ static_cast<uint8_t>(S_arr[1] >> 24)] ^ static_cast<uint8_t>(S_arr[0] >> 24);
+        } else {
+            b0 = Q0[Q1[x] ^ static_cast<uint8_t>(S_arr[1])] ^ static_cast<uint8_t>(S_arr[0]);
+            b1 = Q0[Q0[x] ^ static_cast<uint8_t>(S_arr[1] >> 8)] ^ static_cast<uint8_t>(S_arr[0] >> 8);
+            b2 = Q1[Q1[x] ^ static_cast<uint8_t>(S_arr[1] >> 16)] ^ static_cast<uint8_t>(S_arr[0] >> 16);
+            b3 = Q1[Q0[x] ^ static_cast<uint8_t>(S_arr[1] >> 24)] ^ static_cast<uint8_t>(S_arr[0] >> 24);
+        }
 
-      uint32_t val = mds_mult(b0, b1, b2, b3);
-      m_sbox[0][i] = (uint8_t)(val);
-      m_sbox[1][i] = (uint8_t)(val >> 8);
-      m_sbox[2][i] = (uint8_t)(val >> 16);
-      m_sbox[3][i] = (uint8_t)(val >> 24);
+        uint32_t val = mds_mult(b0, b1, b2, b3);
+        m_sbox[0][i] = static_cast<uint8_t>(val);
+        m_sbox[1][i] = static_cast<uint8_t>(val >> 8);
+        m_sbox[2][i] = static_cast<uint8_t>(val >> 16);
+        m_sbox[3][i] = static_cast<uint8_t>(val >> 24);
     }
-  }
+}
 
-  uint32_t Twofish::h_func(uint32_t x, const std::array<uint32_t, 4>& L, int k) {
-    auto b0 = (uint8_t)(x);
-    auto b1 = (uint8_t)(x >> 8);
-    auto b2 = (uint8_t)(x >> 16);
-    auto b3 = (uint8_t)(x >> 24);
+uint32_t Twofish::h_func(uint32_t x, const std::array<uint32_t, 4> &L, int k) {
+    auto b0 = static_cast<uint8_t>(x);
+    auto b1 = static_cast<uint8_t>(x >> 8);
+    auto b2 = static_cast<uint8_t>(x >> 16);
+    auto b3 = static_cast<uint8_t>(x >> 24);
 
     if (k == 4) {
-      b0 = Q1[b0] ^ (uint8_t)(L[3]);
-      b1 = Q0[b1] ^ (uint8_t)(L[3] >> 8);
-      b2 = Q0[b2] ^ (uint8_t)(L[3] >> 16);
-      b3 = Q1[b3] ^ (uint8_t)(L[3] >> 24);
-      b0 = Q1[b0] ^ (uint8_t)(L[2]);
-      b1 = Q1[b1] ^ (uint8_t)(L[2] >> 8);
-      b2 = Q0[b2] ^ (uint8_t)(L[2] >> 16);
-      b3 = Q0[b3] ^ (uint8_t)(L[2] >> 24);
-      b0 = Q0[Q1[b0] ^ (uint8_t)(L[1])] ^ (uint8_t)(L[0]);
-      b1 = Q0[Q0[b1] ^ (uint8_t)(L[1] >> 8)] ^ (uint8_t)(L[0] >> 8);
-      b2 = Q1[Q1[b2] ^ (uint8_t)(L[1] >> 16)] ^ (uint8_t)(L[0] >> 16);
-      b3 = Q1[Q0[b3] ^ (uint8_t)(L[1] >> 24)] ^ (uint8_t)(L[0] >> 24);
-    }
-    else if (k == 3) {
-      b0 = Q1[b0] ^ (uint8_t)(L[2]);
-      b1 = Q0[b1] ^ (uint8_t)(L[2] >> 8);
-      b2 = Q0[b2] ^ (uint8_t)(L[2] >> 16);
-      b3 = Q1[b3] ^ (uint8_t)(L[2] >> 24);
-      b0 = Q0[Q1[b0] ^ (uint8_t)(L[1])] ^ (uint8_t)(L[0]);
-      b1 = Q0[Q0[b1] ^ (uint8_t)(L[1] >> 8)] ^ (uint8_t)(L[0] >> 8);
-      b2 = Q1[Q1[b2] ^ (uint8_t)(L[1] >> 16)] ^ (uint8_t)(L[0] >> 16);
-      b3 = Q1[Q0[b3] ^ (uint8_t)(L[1] >> 24)] ^ (uint8_t)(L[0] >> 24);
-    }
-    else {
-      b0 = Q0[Q1[b0] ^ (uint8_t)(L[1])] ^ (uint8_t)(L[0]);
-      b1 = Q0[Q0[b1] ^ (uint8_t)(L[1] >> 8)] ^ (uint8_t)(L[0] >> 8);
-      b2 = Q1[Q1[b2] ^ (uint8_t)(L[1] >> 16)] ^ (uint8_t)(L[0] >> 16);
-      b3 = Q1[Q0[b3] ^ (uint8_t)(L[1] >> 24)] ^ (uint8_t)(L[0] >> 24);
+        b0 = Q1[b0] ^ static_cast<uint8_t>(L[3]);
+        b1 = Q0[b1] ^ static_cast<uint8_t>(L[3] >> 8);
+        b2 = Q0[b2] ^ static_cast<uint8_t>(L[3] >> 16);
+        b3 = Q1[b3] ^ static_cast<uint8_t>(L[3] >> 24);
+        b0 = Q1[b0] ^ static_cast<uint8_t>(L[2]);
+        b1 = Q1[b1] ^ static_cast<uint8_t>(L[2] >> 8);
+        b2 = Q0[b2] ^ static_cast<uint8_t>(L[2] >> 16);
+        b3 = Q0[b3] ^ static_cast<uint8_t>(L[2] >> 24);
+        b0 = Q0[Q1[b0] ^ static_cast<uint8_t>(L[1])] ^ static_cast<uint8_t>(L[0]);
+        b1 = Q0[Q0[b1] ^ static_cast<uint8_t>(L[1] >> 8)] ^ static_cast<uint8_t>(L[0] >> 8);
+        b2 = Q1[Q1[b2] ^ static_cast<uint8_t>(L[1] >> 16)] ^ static_cast<uint8_t>(L[0] >> 16);
+        b3 = Q1[Q0[b3] ^ static_cast<uint8_t>(L[1] >> 24)] ^ static_cast<uint8_t>(L[0] >> 24);
+    } else if (k == 3) {
+        b0 = Q1[b0] ^ static_cast<uint8_t>(L[2]);
+        b1 = Q0[b1] ^ static_cast<uint8_t>(L[2] >> 8);
+        b2 = Q0[b2] ^ static_cast<uint8_t>(L[2] >> 16);
+        b3 = Q1[b3] ^ static_cast<uint8_t>(L[2] >> 24);
+        b0 = Q0[Q1[b0] ^ static_cast<uint8_t>(L[1])] ^ static_cast<uint8_t>(L[0]);
+        b1 = Q0[Q0[b1] ^ static_cast<uint8_t>(L[1] >> 8)] ^ static_cast<uint8_t>(L[0] >> 8);
+        b2 = Q1[Q1[b2] ^ static_cast<uint8_t>(L[1] >> 16)] ^ static_cast<uint8_t>(L[0] >> 16);
+        b3 = Q1[Q0[b3] ^ static_cast<uint8_t>(L[1] >> 24)] ^ static_cast<uint8_t>(L[0] >> 24);
+    } else {
+        b0 = Q0[Q1[b0] ^ static_cast<uint8_t>(L[1])] ^ static_cast<uint8_t>(L[0]);
+        b1 = Q0[Q0[b1] ^ static_cast<uint8_t>(L[1] >> 8)] ^ static_cast<uint8_t>(L[0] >> 8);
+        b2 = Q1[Q1[b2] ^ static_cast<uint8_t>(L[1] >> 16)] ^ static_cast<uint8_t>(L[0] >> 16);
+        b3 = Q1[Q0[b3] ^ static_cast<uint8_t>(L[1] >> 24)] ^ static_cast<uint8_t>(L[0] >> 24);
     }
 
     return mds_mult(b0, b1, b2, b3);
-  }
+}
 
-  uint32_t Twofish::g_func(uint32_t x) const {
-    auto b0 = (uint8_t)(x);
-    auto b1 = (uint8_t)(x >> 8);
-    auto b2 = (uint8_t)(x >> 16);
-    auto b3 = (uint8_t)(x >> 24);
+uint32_t Twofish::g_func(uint32_t x) const {
+    auto b0 = static_cast<uint8_t>(x);
+    auto b1 = static_cast<uint8_t>(x >> 8);
+    auto b2 = static_cast<uint8_t>(x >> 16);
+    auto b3 = static_cast<uint8_t>(x >> 24);
 
-    return (uint32_t)m_sbox[0][b0]
-      | ((uint32_t)m_sbox[1][b1] << 8)
-      | ((uint32_t)m_sbox[2][b2] << 16)
-      | ((uint32_t)m_sbox[3][b3] << 24);
-  }
+    return static_cast<uint32_t>(m_sbox[0][b0]) | (static_cast<uint32_t>(m_sbox[1][b1]) << 8) | (static_cast<uint32_t>(m_sbox[2][b2]) << 16) | (static_cast<uint32_t>(m_sbox[3][b3]) << 24);
+}
 
-  void Twofish::set_encryption_key(const Bytes& key) {
+void Twofish::set_encryption_key(const Bytes &key) {
     key_schedule(key);
-  }
+}
 
-  void Twofish::set_decryption_key(const Bytes& key) {
+void Twofish::set_decryption_key(const Bytes &key) {
     key_schedule(key);
-  }
+}
 
-  Bytes Twofish::encrypt_block(const Bytes& block) const {
+Bytes Twofish::encrypt_block(const Bytes &block) const {
     if (block.size() != BLOCK_SIZE) {
-      throw std::invalid_argument("Twofish: block must be 16 bytes");
+        throw std::invalid_argument("Twofish: block must be 16 bytes");
     }
 
-    uint32_t A = (uint32_t)block[0] | ((uint32_t)block[1] << 8) | ((uint32_t)block[2] << 16) | ((uint32_t)block[3] <<
-      24);
-    uint32_t B = (uint32_t)block[4] | ((uint32_t)block[5] << 8) | ((uint32_t)block[6] << 16) | ((uint32_t)block[7] <<
-      24);
-    uint32_t C = (uint32_t)block[8] | ((uint32_t)block[9] << 8) | ((uint32_t)block[10] << 16) | ((uint32_t)block[11] <<
-      24);
-    uint32_t D = (uint32_t)block[12] | ((uint32_t)block[13] << 8) | ((uint32_t)block[14] << 16) | ((uint32_t)block[15]
-      << 24);
+    uint32_t A = static_cast<uint32_t>(block[0]) | (static_cast<uint32_t>(block[1]) << 8) | (static_cast<uint32_t>(block[2]) << 16) | (static_cast<uint32_t>(block[3]) << 24);
+    uint32_t B = static_cast<uint32_t>(block[4]) | (static_cast<uint32_t>(block[5]) << 8) | (static_cast<uint32_t>(block[6]) << 16) | (static_cast<uint32_t>(block[7]) << 24);
+    uint32_t C = static_cast<uint32_t>(block[8]) | (static_cast<uint32_t>(block[9]) << 8) | (static_cast<uint32_t>(block[10]) << 16) | (static_cast<uint32_t>(block[11]) << 24);
+    uint32_t D = static_cast<uint32_t>(block[12]) | (static_cast<uint32_t>(block[13]) << 8) | (static_cast<uint32_t>(block[14]) << 16) | (static_cast<uint32_t>(block[15]) << 24);
 
     A ^= m_subkeys[0];
     B ^= m_subkeys[1];
@@ -308,20 +287,20 @@ namespace crypto::twofish {
     D ^= m_subkeys[3];
 
     for (int r = 0; r < ROUNDS; r++) {
-      uint32_t T0 = g_func(A);
-      uint32_t T1 = g_func(rol32(B, 8));
-      uint32_t F0 = (T0 + T1 + m_subkeys[2 * r + 8]) & 0xFFFFFFFFu;
-      uint32_t F1 = (T0 + 2 * T1 + m_subkeys[2 * r + 9]) & 0xFFFFFFFFu;
+        uint32_t T0 = g_func(A);
+        uint32_t T1 = g_func(rol32(B, 8));
+        uint32_t F0 = (T0 + T1 + m_subkeys[2 * r + 8]) & 0xFFFFFFFFu;
+        uint32_t F1 = (T0 + 2 * T1 + m_subkeys[2 * r + 9]) & 0xFFFFFFFFu;
 
-      C = ror32(C ^ F0, 1);
-      D = rol32(D, 1) ^ F1;
+        C = ror32(C ^ F0, 1);
+        D = rol32(D, 1) ^ F1;
 
-      uint32_t tmp = A;
-      A = C;
-      C = tmp;
-      tmp = B;
-      B = D;
-      D = tmp;
+        uint32_t tmp = A;
+        A = C;
+        C = tmp;
+        tmp = B;
+        B = D;
+        D = tmp;
     }
 
     A ^= m_subkeys[4];
@@ -330,38 +309,34 @@ namespace crypto::twofish {
     D ^= m_subkeys[7];
 
     Bytes result(16);
-    result[0] = (uint8_t)(A);
-    result[1] = (uint8_t)(A >> 8);
-    result[2] = (uint8_t)(A >> 16);
-    result[3] = (uint8_t)(A >> 24);
-    result[4] = (uint8_t)(B);
-    result[5] = (uint8_t)(B >> 8);
-    result[6] = (uint8_t)(B >> 16);
-    result[7] = (uint8_t)(B >> 24);
-    result[8] = (uint8_t)(C);
-    result[9] = (uint8_t)(C >> 8);
-    result[10] = (uint8_t)(C >> 16);
-    result[11] = (uint8_t)(C >> 24);
-    result[12] = (uint8_t)(D);
-    result[13] = (uint8_t)(D >> 8);
-    result[14] = (uint8_t)(D >> 16);
-    result[15] = (uint8_t)(D >> 24);
+    result[0] = static_cast<uint8_t>(A);
+    result[1] = static_cast<uint8_t>(A >> 8);
+    result[2] = static_cast<uint8_t>(A >> 16);
+    result[3] = static_cast<uint8_t>(A >> 24);
+    result[4] = static_cast<uint8_t>(B);
+    result[5] = static_cast<uint8_t>(B >> 8);
+    result[6] = static_cast<uint8_t>(B >> 16);
+    result[7] = static_cast<uint8_t>(B >> 24);
+    result[8] = static_cast<uint8_t>(C);
+    result[9] = static_cast<uint8_t>(C >> 8);
+    result[10] = static_cast<uint8_t>(C >> 16);
+    result[11] = static_cast<uint8_t>(C >> 24);
+    result[12] = static_cast<uint8_t>(D);
+    result[13] = static_cast<uint8_t>(D >> 8);
+    result[14] = static_cast<uint8_t>(D >> 16);
+    result[15] = static_cast<uint8_t>(D >> 24);
     return result;
-  }
+}
 
-  Bytes Twofish::decrypt_block(const Bytes& block) const {
+Bytes Twofish::decrypt_block(const Bytes &block) const {
     if (block.size() != BLOCK_SIZE) {
-      throw std::invalid_argument("Twofish: block must be 16 bytes");
+        throw std::invalid_argument("Twofish: block must be 16 bytes");
     }
 
-    uint32_t A = (uint32_t)block[0] | ((uint32_t)block[1] << 8) | ((uint32_t)block[2] << 16) | ((uint32_t)block[3] <<
-      24);
-    uint32_t B = (uint32_t)block[4] | ((uint32_t)block[5] << 8) | ((uint32_t)block[6] << 16) | ((uint32_t)block[7] <<
-      24);
-    uint32_t C = (uint32_t)block[8] | ((uint32_t)block[9] << 8) | ((uint32_t)block[10] << 16) | ((uint32_t)block[11] <<
-      24);
-    uint32_t D = (uint32_t)block[12] | ((uint32_t)block[13] << 8) | ((uint32_t)block[14] << 16) | ((uint32_t)block[15]
-      << 24);
+    uint32_t A = static_cast<uint32_t>(block[0]) | (static_cast<uint32_t>(block[1]) << 8) | (static_cast<uint32_t>(block[2]) << 16) | (static_cast<uint32_t>(block[3]) << 24);
+    uint32_t B = static_cast<uint32_t>(block[4]) | (static_cast<uint32_t>(block[5]) << 8) | (static_cast<uint32_t>(block[6]) << 16) | (static_cast<uint32_t>(block[7]) << 24);
+    uint32_t C = static_cast<uint32_t>(block[8]) | (static_cast<uint32_t>(block[9]) << 8) | (static_cast<uint32_t>(block[10]) << 16) | (static_cast<uint32_t>(block[11]) << 24);
+    uint32_t D = static_cast<uint32_t>(block[12]) | (static_cast<uint32_t>(block[13]) << 8) | (static_cast<uint32_t>(block[14]) << 16) | (static_cast<uint32_t>(block[15]) << 24);
 
     A ^= m_subkeys[4];
     B ^= m_subkeys[5];
@@ -369,20 +344,20 @@ namespace crypto::twofish {
     D ^= m_subkeys[7];
 
     for (int r = ROUNDS - 1; r >= 0; r--) {
-      uint32_t tmp = A;
-      A = C;
-      C = tmp;
-      tmp = B;
-      B = D;
-      D = tmp;
+        uint32_t tmp = A;
+        A = C;
+        C = tmp;
+        tmp = B;
+        B = D;
+        D = tmp;
 
-      uint32_t T0 = g_func(A);
-      uint32_t T1 = g_func(rol32(B, 8));
-      uint32_t F0 = (T0 + T1 + m_subkeys[2 * r + 8]) & 0xFFFFFFFFu;
-      uint32_t F1 = (T0 + 2 * T1 + m_subkeys[2 * r + 9]) & 0xFFFFFFFFu;
+        uint32_t T0 = g_func(A);
+        uint32_t T1 = g_func(rol32(B, 8));
+        uint32_t F0 = (T0 + T1 + m_subkeys[2 * r + 8]) & 0xFFFFFFFFu;
+        uint32_t F1 = (T0 + 2 * T1 + m_subkeys[2 * r + 9]) & 0xFFFFFFFFu;
 
-      C = rol32(C, 1) ^ F0;
-      D = ror32(D ^ F1, 1);
+        C = rol32(C, 1) ^ F0;
+        D = ror32(D ^ F1, 1);
     }
 
     A ^= m_subkeys[0];
@@ -391,26 +366,26 @@ namespace crypto::twofish {
     D ^= m_subkeys[3];
 
     Bytes result(16);
-    result[0] = (uint8_t)(A);
-    result[1] = (uint8_t)(A >> 8);
-    result[2] = (uint8_t)(A >> 16);
-    result[3] = (uint8_t)(A >> 24);
-    result[4] = (uint8_t)(B);
-    result[5] = (uint8_t)(B >> 8);
-    result[6] = (uint8_t)(B >> 16);
-    result[7] = (uint8_t)(B >> 24);
-    result[8] = (uint8_t)(C);
-    result[9] = (uint8_t)(C >> 8);
-    result[10] = (uint8_t)(C >> 16);
-    result[11] = (uint8_t)(C >> 24);
-    result[12] = (uint8_t)(D);
-    result[13] = (uint8_t)(D >> 8);
-    result[14] = (uint8_t)(D >> 16);
-    result[15] = (uint8_t)(D >> 24);
+    result[0] = static_cast<uint8_t>(A);
+    result[1] = static_cast<uint8_t>(A >> 8);
+    result[2] = static_cast<uint8_t>(A >> 16);
+    result[3] = static_cast<uint8_t>(A >> 24);
+    result[4] = static_cast<uint8_t>(B);
+    result[5] = static_cast<uint8_t>(B >> 8);
+    result[6] = static_cast<uint8_t>(B >> 16);
+    result[7] = static_cast<uint8_t>(B >> 24);
+    result[8] = static_cast<uint8_t>(C);
+    result[9] = static_cast<uint8_t>(C >> 8);
+    result[10] = static_cast<uint8_t>(C >> 16);
+    result[11] = static_cast<uint8_t>(C >> 24);
+    result[12] = static_cast<uint8_t>(D);
+    result[13] = static_cast<uint8_t>(D >> 8);
+    result[14] = static_cast<uint8_t>(D >> 16);
+    result[15] = static_cast<uint8_t>(D >> 24);
     return result;
-  }
+}
 
-  size_t Twofish::block_size() const {
+size_t Twofish::block_size() const {
     return BLOCK_SIZE;
-  }
+}
 } // namespace crypto::twofish
