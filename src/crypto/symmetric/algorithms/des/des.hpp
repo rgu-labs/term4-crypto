@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "internal/core/feistel_network_wrapper.hpp"

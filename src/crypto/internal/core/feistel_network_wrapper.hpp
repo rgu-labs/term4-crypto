@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "crypto/internal/core/feistel_network.hpp"

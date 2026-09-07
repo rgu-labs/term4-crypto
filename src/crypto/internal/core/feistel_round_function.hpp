@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <internal/bytes.hpp>

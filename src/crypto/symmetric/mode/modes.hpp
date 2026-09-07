@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "symmetric/mode/cipher_mode.hpp"
